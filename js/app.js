@@ -284,7 +284,7 @@
       <div class="portal-card">
         <button class="portal-close" id="btn-portal-close" aria-label="Close portal">${Icons.cross(20)}</button>
         <div class="portal-logo">${Icons.rocket(64)}</div>
-        <h1>COSMO CADETS</h1>
+        <h1>COSMIC<span>CADETS</span></h1>
         <div class="portal-sub">Space Training Games</div>
         <p class="portal-tagline">Play fun space minigames, shoot targets, empty space trash, and earn stars!</p>
         

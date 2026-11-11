@@ -1,6 +1,6 @@
 {
-  "name": "Cosmo Cadets: Space Training Games",
-  "short_name": "CosmoCadets",
+  "name": "CosmicCadets: Space Training Games",
+  "short_name": "CosmicCadets",
   "description": "Fun space training minigames, laser target shoot, and space trash clean!",
   "start_url": "/",
   "display": "standalone",
