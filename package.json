@@ -1,7 +1,7 @@
 {
-  "name": "cosmic-cadets",
+  "name": "cosmiccadets",
   "version": "2.0.0",
-  "description": "Cosmic Cadets: Junior Astronaut Flight Academy",
+  "description": "CosmicCadets: Space Training Games",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

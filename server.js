@@ -86,11 +86,11 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log('====================================================');
-  console.log('  *** COSMIC CADETS ACADEMY SERVER IS LIVE! ***     ');
+  console.log('       *** COSMICCADETS SERVER IS LIVE! ***         ');
   console.log('====================================================');
   console.log(`  Local URL:   http://localhost:${PORT}`);
   console.log(`  Network URL: http://127.0.0.1:${PORT}`);
-  console.log('  Ready to play: Cosmic Blaster, Orbit Recycler,');
-  console.log('  Debris Dodge, Gyro Spinner, G-Force, and Memory!');
+  console.log('  Training games: Laser Shoot, Space Trash,');
+  console.log('  Asteroid Dodge, Ring Align, Rocket Boost, Code Match');
   console.log('====================================================');
 });

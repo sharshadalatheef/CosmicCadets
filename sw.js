@@ -1,33 +1,34 @@
-// CosmicCadets Service Worker - Offline Space Training PWA
-const CACHE_NAME = 'cosmiccadets-v1';
+// CosmicCadets Service Worker - Offline Space Training PWA (v3.0 - Network-First)
+const CACHE_NAME = 'cosmiccadets-v3';
 const ASSETS_TO_CACHE = [
   '/',
-  '/index.html',
+  '/index.html?v=3.0',
   '/manifest.json',
   '/favicon.svg',
-  '/css/style.css',
-  '/js/core.js',
-  '/js/icons.js',
-  '/js/audio.js',
-  '/js/storage.js',
-  '/js/daily.js',
-  '/js/tutorial.js',
-  '/js/app.js',
-  '/js/games/blaster.js',
-  '/js/games/collector.js',
-  '/js/games/dodge.js',
-  '/js/games/gyro.js',
-  '/js/games/gforce.js',
-  '/js/games/memory.js'
+  '/css/style.css?v=3.0',
+  '/js/core.js?v=3.0',
+  '/js/icons.js?v=3.0',
+  '/js/audio.js?v=3.0',
+  '/js/storage.js?v=3.0',
+  '/js/daily.js?v=3.0',
+  '/js/tutorial.js?v=3.0',
+  '/js/app.js?v=3.0',
+  '/js/games/blaster.js?v=3.0',
+  '/js/games/collector.js?v=3.0',
+  '/js/games/dodge.js?v=3.0',
+  '/js/games/gyro.js?v=3.0',
+  '/js/games/gforce.js?v=3.0',
+  '/js/games/memory.js?v=3.0'
 ];
 
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS_TO_CACHE).catch((err) => {
-        console.warn('PWA: Some assets failed to pre-cache', err);
+        console.warn('PWA: Pre-cache completed with minor warnings', err);
       });
-    }).then(() => self.skipWaiting())
+    })
   );
 });
 
@@ -37,6 +38,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
+            console.log('PWA: Purging outdated cache:', key);
             return caches.delete(key);
           }
         })
@@ -45,10 +47,16 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Bypass API requests to ensure fresh leaderboard & auth responses
+  // Bypass API calls so leaderboard and dynamic server requests are always fresh
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(event.request).catch(() => {
@@ -60,21 +68,25 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache-first strategy for static game assets
+  // Network-First strategy: Always fetch newest code first; fall back to cache when offline
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Return cached version and update in background
-        fetch(event.request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, networkResponse);
-            });
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200 && event.request.method === 'GET') {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) return cachedResponse;
+          if (event.request.headers.get('accept')?.includes('text/html')) {
+            return caches.match('/index.html?v=3.0') || caches.match('/');
           }
-        }).catch(() => {});
-        return cachedResponse;
-      }
-      return fetch(event.request);
-    })
+        });
+      })
   );
 });
