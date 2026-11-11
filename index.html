@@ -14,7 +14,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=3.0">
+  <link rel="stylesheet" href="css/style.css?v=3.1">
+  <script>
+    // Immediate proactive cache purge for legacy service worker caches
+    if ('caches' in window) {
+      caches.keys().then(function(names) {
+        names.forEach(function(name) {
+          if (name !== 'cosmiccadets-v3.1') {
+            caches.delete(name);
+          }
+        });
+      });
+    }
+  </script>
 </head>
 <body>
   <canvas id="bg"></canvas>
@@ -95,37 +107,35 @@
     <div id="onboarding-portal" hidden></div>
   </div>
 
-  <!-- Scripts with Cache-Busting Version 3.0 -->
-  <script src="js/core.js?v=3.0"></script>
-  <script src="js/icons.js?v=3.0"></script>
-  <script src="js/audio.js?v=3.0"></script>
-  <script src="js/storage.js?v=3.0"></script>
-  <script src="js/daily.js?v=3.0"></script>
-  <script src="js/games/blaster.js?v=3.0"></script>
-  <script src="js/games/collector.js?v=3.0"></script>
-  <script src="js/games/dodge.js?v=3.0"></script>
-  <script src="js/games/gyro.js?v=3.0"></script>
-  <script src="js/games/gforce.js?v=3.0"></script>
-  <script src="js/games/memory.js?v=3.0"></script>
-  <script src="js/tutorial.js?v=3.0"></script>
-  <script src="js/app.js?v=3.0"></script>
+  <!-- Scripts with Cache-Busting Version 3.1 -->
+  <script src="js/core.js?v=3.1"></script>
+  <script src="js/icons.js?v=3.1"></script>
+  <script src="js/audio.js?v=3.1"></script>
+  <script src="js/storage.js?v=3.1"></script>
+  <script src="js/daily.js?v=3.1"></script>
+  <script src="js/games/blaster.js?v=3.1"></script>
+  <script src="js/games/collector.js?v=3.1"></script>
+  <script src="js/games/dodge.js?v=3.1"></script>
+  <script src="js/games/gyro.js?v=3.1"></script>
+  <script src="js/games/gforce.js?v=3.1"></script>
+  <script src="js/games/memory.js?v=3.1"></script>
+  <script src="js/tutorial.js?v=3.1"></script>
+  <script src="js/app.js?v=3.1"></script>
   <script>
-    // Proactively purge old caches and register updated service worker
-    if ('caches' in window) {
-      caches.keys().then(function(names) {
-        names.forEach(function(name) {
-          if (name !== 'cosmiccadets-v3') {
-            caches.delete(name);
-          }
-        });
-      });
-    }
-
     if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js?v=3.0').then(function(reg) {
+        navigator.serviceWorker.register('/sw.js?v=3.1').then(function(reg) {
           reg.update();
         }).catch(function() {});
+      });
+
+      // Automatically reload when a fresh service worker takes control
+      var refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function() {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
       });
     }
   </script>

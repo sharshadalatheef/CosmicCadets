@@ -1,24 +1,24 @@
-// CosmicCadets Service Worker - Offline Space Training PWA (v3.0 - Network-First)
-const CACHE_NAME = 'cosmiccadets-v3';
+// CosmicCadets Service Worker - Offline Space Training PWA (v3.1 - Network-First)
+const CACHE_NAME = 'cosmiccadets-v3.1';
 const ASSETS_TO_CACHE = [
   '/',
-  '/index.html?v=3.0',
+  '/index.html?v=3.1',
   '/manifest.json',
   '/favicon.svg',
-  '/css/style.css?v=3.0',
-  '/js/core.js?v=3.0',
-  '/js/icons.js?v=3.0',
-  '/js/audio.js?v=3.0',
-  '/js/storage.js?v=3.0',
-  '/js/daily.js?v=3.0',
-  '/js/tutorial.js?v=3.0',
-  '/js/app.js?v=3.0',
-  '/js/games/blaster.js?v=3.0',
-  '/js/games/collector.js?v=3.0',
-  '/js/games/dodge.js?v=3.0',
-  '/js/games/gyro.js?v=3.0',
-  '/js/games/gforce.js?v=3.0',
-  '/js/games/memory.js?v=3.0'
+  '/css/style.css?v=3.1',
+  '/js/core.js?v=3.1',
+  '/js/icons.js?v=3.1',
+  '/js/audio.js?v=3.1',
+  '/js/storage.js?v=3.1',
+  '/js/daily.js?v=3.1',
+  '/js/tutorial.js?v=3.1',
+  '/js/app.js?v=3.1',
+  '/js/games/blaster.js?v=3.1',
+  '/js/games/collector.js?v=3.1',
+  '/js/games/dodge.js?v=3.1',
+  '/js/games/gyro.js?v=3.1',
+  '/js/games/gforce.js?v=3.1',
+  '/js/games/memory.js?v=3.1'
 ];
 
 self.addEventListener('install', (event) => {
@@ -43,7 +43,15 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    }).then(() => self.clients.claim())
+    }).then(() => self.clients.claim()).then(() => {
+      return self.clients.matchAll({ type: 'window' });
+    }).then((clients) => {
+      clients.forEach((client) => {
+        if (client.url && 'navigate' in client) {
+          client.navigate(client.url);
+        }
+      });
+    })
   );
 });
 
@@ -84,7 +92,7 @@ self.addEventListener('fetch', (event) => {
         return caches.match(event.request).then((cachedResponse) => {
           if (cachedResponse) return cachedResponse;
           if (event.request.headers.get('accept')?.includes('text/html')) {
-            return caches.match('/index.html?v=3.0') || caches.match('/');
+            return caches.match('/index.html?v=3.1') || caches.match('/');
           }
         });
       })
