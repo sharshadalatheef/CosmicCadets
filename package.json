@@ -1,0 +1,17 @@
+{
+  "name": "cosmic-cadets",
+  "version": "2.0.0",
+  "description": "Cosmic Cadets: Junior Astronaut Flight Academy",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "game",
+    "space",
+    "cadets",
+    "arcade"
+  ],
+  "author": "",
+  "license": "MIT"
+}

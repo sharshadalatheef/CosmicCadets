@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Cosmic Cadets: Space Training Games</title>
+  <meta name="description" content="Addictive space minigames: Laser Shoot Training, Space Trash Clean, and daily star missions!">
+  <meta name="theme-color" content="#070b28">
+  <meta property="og:title" content="Cosmic Cadets: Space Training Games">
+  <meta property="og:description" content="Play fun space minigames, laser shoot targets, and clean space trash!">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <canvas id="bg"></canvas>
+  <canvas id="fx"></canvas>
+
+  <div id="app">
+    <!-- Header -->
+    <header>
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+          <defs>
+            <radialGradient id="pg" cx=".35" cy=".3">
+              <stop offset="0" stop-color="#ffe9a3"/>
+              <stop offset="1" stop-color="#ff7a3d"/>
+            </radialGradient>
+          </defs>
+          <ellipse cx="32" cy="34" rx="30" ry="9" fill="none" stroke="#4cc9f0" stroke-width="4" transform="rotate(-20 32 34)"/>
+          <circle cx="32" cy="32" r="17" fill="url(#pg)"/>
+          <path d="M4 42Q32 54 60 26" fill="none" stroke="#4cc9f0" stroke-width="4" stroke-linecap="round"/>
+          <path d="M50 4l2.6 6 6 2.6-6 2.6L50 21l-2.6-5.8-6-2.6 6-2.6z" fill="#ffd23f"/>
+          <circle cx="26" cy="26" r="3" fill="#fff" opacity=".6"/>
+        </svg>
+        <div>
+          <h1>Cosmo <span>Cadets</span></h1>
+          <div class="sub">Space Training Games</div>
+        </div>
+      </div>
+
+      <div class="stats">
+        <span class="pill" id="cadet-pill"></span>
+        <span class="pill" id="rank-pill"></span>
+        <span class="pill stars-pill" id="stars-pill"></span>
+        <button class="btn-pill leaderboard-btn" id="btn-leaderboard" aria-label="Open Star Leaderboard">
+          <svg class="cc-icon" width="18" height="18" viewBox="0 0 24 24" fill="#ffd23f"><path d="M6 3h12v4c0 3.31-2.69 6-6 6s-6-2.69-6-6V3z"/><path d="M10 13v4H8v3h8v-3h-2v-4h-4z"/></svg>
+          Leaderboard
+        </button>
+        <button class="btn-pill" id="btn-fieldguide" aria-label="Open How to Play Tutorial">
+          <svg class="cc-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          How to Play
+        </button>
+        <button class="icon" id="mus" aria-label="Music on or off"></button>
+        <button class="icon" id="mute" aria-label="Sound effects on or off"></button>
+      </div>
+    </header>
+
+    <!-- Main Academy Deck -->
+    <main id="menu">
+      <!-- Unified Space Training Tasks Deck -->
+      <section id="daily-deck"></section>
+
+      <!-- Badges and Progress Panel -->
+      <div id="panel"></div>
+    </main>
+
+    <!-- In-Game Play Stage -->
+    <section id="play" hidden>
+      <div class="top">
+        <button class="icon" id="back" aria-label="Back to Academy Menu">
+          <svg class="cc-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </button>
+        <h2 id="gt"></h2>
+        <span class="hud" id="hud"></span>
+      </div>
+      <div id="stage"></div>
+    </section>
+
+    <!-- General Modal Dialog -->
+    <div id="ov" hidden>
+      <div class="box" id="box"></div>
+    </div>
+
+    <!-- Onboarding Tutorial Modal -->
+    <div id="tutorial-modal" hidden>
+      <div class="box" id="tutorial-box"></div>
+    </div>
+
+    <!-- Enlistment / Login / Start Portal -->
+    <div id="onboarding-portal" hidden></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/core.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/daily.js"></script>
+  <script src="js/games/blaster.js"></script>
+  <script src="js/games/collector.js"></script>
+  <script src="js/games/dodge.js"></script>
+  <script src="js/games/gyro.js"></script>
+  <script src="js/games/gforce.js"></script>
+  <script src="js/games/memory.js"></script>
+  <script src="js/tutorial.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
