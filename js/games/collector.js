@@ -4,6 +4,7 @@ function collectorGame(st, api) {
   c.className = 'cv';
   c.width = 360;
   c.height = 430;
+  c.style.touchAction = 'none';
   const x = c.getContext('2d');
 
   // Big tactile tactile lever button below canvas
@@ -11,6 +12,7 @@ function collectorGame(st, api) {
   pad.className = 'pad';
   const leverBtn = document.createElement('button');
   leverBtn.className = 'big suction-btn';
+  leverBtn.style.touchAction = 'none';
   leverBtn.innerHTML = Icons.recycle(24) + ' HOLD TO FLUSH LEVER!';
   pad.append(leverBtn);
   st.append(c, pad);
@@ -174,30 +176,22 @@ function collectorGame(st, api) {
     }
   }
 
-  // Pointer interactions (Touch canvas)
-  function getCanvasCoords(e) {
-    const rect = c.getBoundingClientRect();
-    const cx = e.touches ? e.touches[0].clientX : e.clientX;
-    const cy = e.touches ? e.touches[0].clientY : e.clientY;
-    return {
-      x: ((cx - rect.left) / rect.width) * 360,
-      y: ((cy - rect.top) / rect.height) * 430
-    };
-  }
+  const getCoords = e => (window.getCanvasCoords ? window.getCanvasCoords(e, c, 360, 430) : { x: 180, y: 200 });
 
   c.addEventListener('pointerdown', e => {
     e.preventDefault();
-    const pos = getCanvasCoords(e);
+    try { c.setPointerCapture(e.pointerId); } catch(err) {}
+    const pos = getCoords(e);
 
-    // Check Lever on right
-    if (Math.abs(pos.x - LEVER_X) < 32 && pos.y >= LEVER_Y_UP - 20 && pos.y <= LEVER_Y_UP + LEVER_H + 30) {
+    // Check Lever on right (generous touch hit area for thumb taps on mobile)
+    if (pos.x >= 265 && pos.y >= LEVER_Y_UP - 25 && pos.y <= LEVER_Y_UP + LEVER_H + 35) {
       isHoldingLever = true;
       return;
     }
 
     // Check tap on hazards (defuse mines / pop slime)
     for (let h of hazards) {
-      if (Math.hypot(pos.x - h.x, pos.y - h.y) < h.r + 12) {
+      if (Math.hypot(pos.x - h.x, pos.y - h.y) < h.r + 18) {
         if (h.armed) {
           h.tapsLeft--;
           Sound.click();
@@ -217,7 +211,7 @@ function collectorGame(st, api) {
     // Check drag on trash items
     for (let i = trashList.length - 1; i >= 0; i--) {
       const item = trashList[i];
-      if (Math.hypot(pos.x - item.x, pos.y - item.y) < item.r + 12) {
+      if (Math.hypot(pos.x - item.x, pos.y - item.y) < item.r + 20) {
         draggedItem = item;
         dragOffsetX = item.x - pos.x;
         dragOffsetY = item.y - pos.y;
@@ -227,14 +221,14 @@ function collectorGame(st, api) {
   });
 
   c.addEventListener('pointermove', e => {
-    const pos = getCanvasCoords(e);
+    const pos = getCoords(e);
 
     if (draggedItem) {
       draggedItem.x = pos.x + dragOffsetX;
       draggedItem.y = pos.y + dragOffsetY;
 
       // Check drop into bottom chute
-      if (Math.hypot(draggedItem.x - CHUTE_X, draggedItem.y - CHUTE_Y) < CHUTE_R + 12) {
+      if (Math.hypot(draggedItem.x - CHUTE_X, draggedItem.y - CHUTE_Y) < CHUTE_R + 18) {
         const item = draggedItem;
         draggedItem = null;
         trashList = trashList.filter(t => t.id !== item.id);
@@ -255,13 +249,18 @@ function collectorGame(st, api) {
     }
   });
 
-  const stopPulling = () => {
+  const stopPulling = e => {
     isHoldingLever = false;
     draggedItem = null;
+    if (e && e.pointerId) {
+      try { c.releasePointerCapture(e.pointerId); } catch(err) {}
+    }
   };
-  ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => c.addEventListener(ev, stopPulling));
+  ['pointerup', 'pointercancel'].forEach(ev => c.addEventListener(ev, stopPulling));
+  window.addEventListener('pointerup', stopPulling);
+  window.addEventListener('pointercancel', stopPulling);
 
-  // Button hold listeners
+  // Button hold listeners using upgraded hold()
   hold(leverBtn, () => isHoldingLever = true, () => isHoldingLever = false);
 
   // Keyboard Space hold
@@ -616,6 +615,8 @@ function collectorGame(st, api) {
 
   return () => {
     stop();
+    window.removeEventListener('pointerup', stopPulling);
+    window.removeEventListener('pointercancel', stopPulling);
     removeEventListener('keydown', kd);
     removeEventListener('keyup', ku);
   };

@@ -4,10 +4,12 @@ function gforceGame(st, api) {
   c.className = 'cv';
   c.width = 360;
   c.height = 380;
+  c.style.touchAction = 'none';
   const x = c.getContext('2d');
 
   const b = document.createElement('button');
   b.className = 'big gforce-thrust-btn';
+  b.style.touchAction = 'none';
   b.innerHTML = Icons.flame(24) + ' HOLD THRUST';
   st.append(c, b);
 
@@ -15,7 +17,9 @@ function gforceGame(st, api) {
   const T = 30;
   let done = false;
 
+  // Touch/pointer hold on both button and canvas for easy mobile control
   hold(b, () => h = true, () => h = false);
+  hold(c, () => h = true, () => h = false);
 
   const kd = e => {
     if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {

@@ -3,10 +3,12 @@ function gyroGame(st, api) {
   const c = document.createElement('canvas');
   c.className = 'cv';
   c.width = c.height = 360;
+  c.style.touchAction = 'none';
   const x = c.getContext('2d');
 
   const b = document.createElement('button');
   b.className = 'big gyro-stop-btn';
+  b.style.touchAction = 'none';
   b.innerHTML = Icons.target(24) + ' STOP!';
   st.append(c, b);
 
@@ -52,8 +54,14 @@ function gyroGame(st, api) {
     }
   }
 
-  b.addEventListener('pointerdown', e => { e.preventDefault(); tap(); });
-  c.addEventListener('pointerdown', tap);
+  // Fast responsive tap for mobile & desktop
+  if (window.addMobileTap) {
+    window.addMobileTap(b, tap);
+    window.addMobileTap(c, tap);
+  } else {
+    b.addEventListener('pointerdown', e => { e.preventDefault(); tap(); });
+    c.addEventListener('pointerdown', e => { e.preventDefault(); tap(); });
+  }
 
   const key = e => {
     if (e.code === 'Space' || e.code === 'Enter') {

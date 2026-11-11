@@ -55,18 +55,24 @@ const Tutorial = (function() {
       </div>
     `;
 
+    const addTap = (el, fn) => {
+      if (!el) return;
+      if (window.addMobileTap) window.addMobileTap(el, fn);
+      else el.onclick = fn;
+    };
+
     const prevBtn = document.getElementById('tut-prev');
     if (prevBtn) {
-      prevBtn.onclick = () => {
+      addTap(prevBtn, () => {
         Sound.click();
         currentStep = Math.max(0, currentStep - 1);
         renderStep(currentStep, onFinish);
-      };
+      });
     }
 
     const nextBtn = document.getElementById('tut-next');
     if (nextBtn) {
-      nextBtn.onclick = () => {
+      addTap(nextBtn, () => {
         Sound.click();
         if (currentStep < STEPS.length - 1) {
           currentStep++;
@@ -76,7 +82,7 @@ const Tutorial = (function() {
           closeModal();
           if (onFinish) onFinish();
         }
-      };
+      });
     }
   }
 

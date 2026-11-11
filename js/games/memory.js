@@ -17,15 +17,21 @@ function memoryGame(st, api) {
   const btn = P.map((p, i) => {
     const e = document.createElement('button');
     e.className = 'pp memory-btn';
+    e.style.touchAction = 'manipulation';
     e.innerHTML = `<span class="mem-ic">${p.icon}</span><span class="mem-label">${p.name}</span>`;
     e.style.background = `radial-gradient(circle, ${p.color}55 0%, #101642 90%)`;
     e.style.borderColor = p.color;
     e.style.color = p.color;
     e.setAttribute('aria-label', p.name);
-    e.addEventListener('pointerdown', ev => {
-      ev.preventDefault();
-      press(i);
-    });
+
+    if (window.addMobileTap) {
+      window.addMobileTap(e, () => press(i));
+    } else {
+      e.addEventListener('pointerdown', ev => {
+        ev.preventDefault();
+        press(i);
+      });
+    }
     g.append(e);
     return e;
   });

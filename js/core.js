@@ -1,7 +1,94 @@
-// CosmicCadets Core Shared Engine Utilities
+// CosmicCadets Core Shared Engine Utilities - Mobile & Desktop Robust
 (function() {
   window.clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   window.TAU = Math.PI * 2;
+
+  // Universal touch and pointer coordinates helper for mobile & desktop
+  window.getCanvasCoords = function(e, canvas, virtualW = 360, virtualH = 420) {
+    if (!canvas) return { x: virtualW / 2, y: virtualH / 2 };
+    const rect = canvas.getBoundingClientRect();
+    let cx = 0, cy = 0;
+
+    if (e.touches && e.touches.length > 0) {
+      cx = e.touches[0].clientX;
+      cy = e.touches[0].clientY;
+    } else if (e.changedTouches && e.changedTouches.length > 0) {
+      cx = e.changedTouches[0].clientX;
+      cy = e.changedTouches[0].clientY;
+    } else {
+      cx = e.clientX != null ? e.clientX : (rect.left + rect.width / 2);
+      cy = e.clientY != null ? e.clientY : (rect.top + rect.height / 2);
+    }
+
+    const rw = rect.width || 1;
+    const rh = rect.height || 1;
+    return {
+      x: Math.max(0, Math.min(virtualW, ((cx - rect.left) / rw) * virtualW)),
+      y: Math.max(0, Math.min(virtualH, ((cy - rect.top) / rh) * virtualH))
+    };
+  };
+
+  // Bulletproof hold button helper for mobile & desktop
+  window.hold = function(el, on, off) {
+    if (!el) return;
+    let isDown = false;
+    let activePointerId = null;
+
+    const start = e => {
+      e.preventDefault();
+      if (isDown) return;
+      isDown = true;
+      activePointerId = e.pointerId != null ? e.pointerId : 'touch';
+      el.classList.add('down');
+      try {
+        if (e.pointerId != null && el.setPointerCapture) {
+          el.setPointerCapture(e.pointerId);
+        }
+      } catch (err) {}
+      on();
+    };
+
+    const stop = e => {
+      if (!isDown) return;
+      if (e && e.pointerId != null && activePointerId !== null && e.pointerId !== activePointerId) return;
+      isDown = false;
+      activePointerId = null;
+      el.classList.remove('down');
+      try {
+        if (e && e.pointerId != null && el.releasePointerCapture) {
+          el.releasePointerCapture(e.pointerId);
+        }
+      } catch (err) {}
+      off();
+    };
+
+    el.addEventListener('pointerdown', start);
+    el.addEventListener('pointerup', stop);
+    el.addEventListener('pointercancel', stop);
+    window.addEventListener('pointerup', stop);
+    window.addEventListener('pointercancel', stop);
+
+    // Explicit touch events fallback for iOS Safari
+    el.addEventListener('touchstart', start, { passive: false });
+    el.addEventListener('touchend', stop, { passive: false });
+    el.addEventListener('touchcancel', stop, { passive: false });
+  };
+
+  // Instant responsive tap for mobile buttons (no 300ms delay)
+  window.addMobileTap = function(el, fn) {
+    if (!el) return;
+    let tapped = false;
+    const trigger = e => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (tapped) return;
+      tapped = true;
+      setTimeout(() => tapped = false, 120);
+      fn(e);
+    };
+    el.addEventListener('pointerdown', trigger);
+    el.addEventListener('touchstart', trigger, { passive: false });
+  };
 
   // Animation Loop with capped delta time
   window.loop = function(fn) {
@@ -22,22 +109,6 @@
       on = false;
       cancelAnimationFrame(id);
     };
-  };
-
-  // Hold pointer event helper for buttons
-  window.hold = function(el, on, off) {
-    if (!el) return;
-    const d = e => {
-      e.preventDefault();
-      el.classList.add('down');
-      on();
-    };
-    const u = () => {
-      el.classList.remove('down');
-      off();
-    };
-    el.addEventListener('pointerdown', d);
-    ['pointerup', 'pointerleave', 'pointercancel'].forEach(k => el.addEventListener(k, u));
   };
 
   // Particle systems

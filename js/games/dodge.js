@@ -4,15 +4,18 @@ function dodgeGame(st, api) {
   c.className = 'cv';
   c.width = 360;
   c.height = 420;
+  c.style.touchAction = 'none';
   const x = c.getContext('2d');
 
   const pad = document.createElement('div');
   pad.className = 'pad';
   const bl = document.createElement('button');
   bl.className = 'big pad-btn';
+  bl.style.touchAction = 'none';
   bl.innerHTML = Icons.arrowLeft(24);
   const br = document.createElement('button');
   br.className = 'big pad-btn';
+  br.style.touchAction = 'none';
   br.innerHTML = Icons.arrowRight(24);
   pad.append(bl, br);
   st.append(c, pad);
@@ -26,14 +29,25 @@ function dodgeGame(st, api) {
   hold(br, () => R = 1, () => R = 0);
 
   const setT = e => {
-    const r = c.getBoundingClientRect();
-    const cx = e.touches ? e.touches[0].clientX : e.clientX;
-    tx = ((cx - r.left) * 360) / r.width;
+    const pos = window.getCanvasCoords ? window.getCanvasCoords(e, c, 360, 420) : { x: 180, y: 200 };
+    tx = pos.x;
   };
 
-  c.addEventListener('pointerdown', e => { drag = 1; setT(e); });
+  c.addEventListener('pointerdown', e => {
+    drag = 1;
+    try { c.setPointerCapture(e.pointerId); } catch(err) {}
+    setT(e);
+  });
   c.addEventListener('pointermove', e => { if (drag) setT(e); });
-  ['pointerup', 'pointerleave', 'pointercancel'].forEach(k => c.addEventListener(k, () => drag = 0));
+  const stopDodgeDrag = e => {
+    drag = 0;
+    if (e && e.pointerId) {
+      try { c.releasePointerCapture(e.pointerId); } catch(err) {}
+    }
+  };
+  ['pointerup', 'pointercancel'].forEach(k => c.addEventListener(k, stopDodgeDrag));
+  window.addEventListener('pointerup', stopDodgeDrag);
+  window.addEventListener('pointercancel', stopDodgeDrag);
 
   const kd = e => {
     if (e.code === 'ArrowLeft' || e.code === 'KeyA') L = 1;
@@ -200,6 +214,8 @@ function dodgeGame(st, api) {
 
   return () => {
     stop();
+    window.removeEventListener('pointerup', stopDodgeDrag);
+    window.removeEventListener('pointercancel', stopDodgeDrag);
     removeEventListener('keydown', kd);
     removeEventListener('keyup', ku);
   };

@@ -1268,12 +1268,369 @@ button {
   font-size: 1rem;
 }
 
-/* Responsive adjustments */
+/* Responsive adjustments for Mobile UI and Touch Controls */
 @media (max-width: 600px) {
-  #app { padding: 10px 12px 30px; }
-  .grid { grid-template-columns: 1fr; }
-  .daily-grid { grid-template-columns: 1fr; }
-  .stats { width: 100%; justify-content: space-between; }
-  .daily-banner { flex-direction: column; align-items: flex-start; }
-  .daily-tracker { width: 100%; text-align: left; }
+  #app {
+    padding: 6px 8px 24px;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  /* Ultra-Compact Mobile Header (Height ~75px) */
+  header {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .brand .logo {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+  }
+
+  .brand h1 {
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+
+  .brand .sub {
+    display: none;
+  }
+
+  .stats {
+    width: 100%;
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 6px;
+    align-items: center;
+    padding-bottom: 2px;
+  }
+  .stats::-webkit-scrollbar {
+    display: none;
+  }
+  .stats > * {
+    flex-shrink: 0;
+  }
+
+  #rank-pill {
+    display: none; /* Hide redundant rank badge in header on mobile to conserve viewport */
+  }
+
+  .pill {
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    gap: 5px;
+    border-radius: 99px;
+  }
+
+  .hdr-avatar svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .btn-pill {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    gap: 4px;
+    border-radius: 99px;
+  }
+
+  .icon {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+  }
+
+  .icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* In-Game Play Stage & HUD */
+  .top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 8px;
+    width: 100%;
+  }
+
+  .top #back {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+  }
+
+  .top h2 {
+    font-size: 1rem;
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .hud {
+    padding: 3px 8px;
+    font-size: 0.8rem;
+    gap: 6px;
+    border-radius: 12px;
+    flex-shrink: 0;
+  }
+
+  .hud-item {
+    gap: 3px;
+  }
+
+  /* Stage & Responsive Canvas - always visible with controls */
+  #stage {
+    gap: 8px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .cv {
+    width: 100%;
+    max-width: 360px;
+    max-height: min(350px, calc(100dvh - 170px));
+    height: auto;
+    object-fit: contain;
+    border-radius: 18px;
+    display: block;
+    margin: 0 auto;
+  }
+
+  /* Big Action Control Buttons */
+  .pad {
+    width: 100%;
+    max-width: 360px;
+    gap: 8px;
+    margin: 0 auto;
+  }
+
+  .big {
+    min-height: 48px;
+    font-size: 1.1rem;
+    border-radius: 14px;
+    padding: 6px 12px;
+  }
+
+  .pad4 {
+    gap: 8px;
+    max-width: 300px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .pp {
+    border-radius: 16px;
+    font-size: 0.9rem;
+    padding: 8px 4px;
+  }
+
+  /* Space Fact Card */
+  .space-fact-card {
+    padding: 8px 12px;
+    gap: 8px;
+    margin-bottom: 12px;
+    border-radius: 14px;
+  }
+
+  .fact-tag {
+    font-size: 0.72rem;
+    padding: 3px 8px;
+  }
+
+  .fact-text {
+    font-size: 0.85rem;
+    line-height: 1.3;
+  }
+
+  /* Daily Missions Deck */
+  #daily-deck {
+    padding: 14px 12px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+
+  .daily-banner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .daily-info h2 {
+    font-size: 1.25rem;
+  }
+
+  .daily-info p {
+    font-size: 0.85rem;
+  }
+
+  .daily-tracker {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 14px;
+  }
+
+  .daily-stars-count {
+    font-size: 1.05rem;
+  }
+
+  .featured-banner {
+    padding: 6px 10px;
+    font-size: 0.82rem;
+    border-radius: 12px;
+  }
+
+  /* Training Tasks Grid */
+  .tasks-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .task-card {
+    padding: 14px 16px;
+    border-radius: 18px;
+  }
+
+  .task-card-head .task-badge-pill {
+    font-size: 0.72rem;
+    padding: 3px 8px;
+  }
+
+  .task-card h3 {
+    font-size: 1.15rem;
+  }
+
+  .task-card p {
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+  }
+
+  .big-task-btn {
+    min-height: 46px;
+    font-size: 0.95rem;
+    border-radius: 14px;
+  }
+
+  /* Modals & Portal Card */
+  #ov, #tutorial-modal, #onboarding-portal {
+    padding: 10px;
+  }
+
+  .portal-card, .box {
+    padding: 18px 14px;
+    border-radius: 20px;
+    max-height: 88vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .portal-card h2, .box h2 {
+    font-size: 1.35rem;
+  }
+
+  .portal-tagline, .box p {
+    font-size: 0.88rem;
+  }
+
+  .avatar-picker {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .av-option {
+    padding: 6px;
+    border-radius: 12px;
+  }
+
+  .av-option svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .form-group input {
+    padding: 9px 12px;
+    font-size: 0.92rem;
+  }
+
+  .big-submit {
+    min-height: 48px;
+    font-size: 1.05rem;
+  }
+
+  .lb-list {
+    max-height: 48vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 6px;
+  }
+
+  .lb-row {
+    padding: 8px 10px;
+    border-radius: 12px;
+    gap: 8px;
+  }
+
+  .lb-rank {
+    font-size: 0.95rem;
+    width: 24px;
+  }
+
+  .lb-avatar svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .lb-name {
+    font-size: 0.9rem;
+  }
+
+  .lb-meta {
+    font-size: 0.72rem;
+  }
+
+  .lb-stars {
+    font-size: 0.95rem;
+    gap: 4px;
+  }
+
+  .tut-desc {
+    font-size: 0.92rem;
+  }
+}
+
+/* Extra small mobile screens (<= 360px) */
+@media (max-width: 360px) {
+  .brand h1 {
+    font-size: 1.05rem;
+  }
+  .hud {
+    font-size: 0.72rem;
+    padding: 3px 5px;
+  }
+  .big {
+    font-size: 1rem;
+  }
 }

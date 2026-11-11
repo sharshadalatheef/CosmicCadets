@@ -9,6 +9,12 @@
   };
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
+  const addTap = (el, fn) => {
+    if (!el) return;
+    if (window.addMobileTap) window.addMobileTap(el, fn);
+    else el.onclick = fn;
+  };
+
   let activeGame = null;
   let stopGameFn = null;
   let isDailyPlay = false;
@@ -76,26 +82,30 @@
   window.showGameIntro = showGameIntro;
   window.startGame = startGame;
 
-  // Helper particles and effects
-  window.loop = function(fn) {
-    let id, last = performance.now(), on = true;
-    const f = n => {
-      if (!on) return;
-      const dt = Math.min(0.05, (n - last) / 1000);
-      last = n;
-      fn(dt);
+  // Use core.js robust loop & hold helpers if already present
+  if (!window.loop) {
+    window.loop = function(fn) {
+      let id, last = performance.now(), on = true;
+      const f = n => {
+        if (!on) return;
+        const dt = Math.min(0.05, (n - last) / 1000);
+        last = n;
+        fn(dt);
+        id = requestAnimationFrame(f);
+      };
       id = requestAnimationFrame(f);
+      return () => { on = false; cancelAnimationFrame(id); };
     };
-    id = requestAnimationFrame(f);
-    return () => { on = false; cancelAnimationFrame(id); };
-  };
+  }
 
-  window.hold = function(el, on, off) {
-    const d = e => { e.preventDefault(); el.classList.add('down'); on(); };
-    const u = () => { el.classList.remove('down'); off(); };
-    el.addEventListener('pointerdown', d);
-    ['pointerup', 'pointerleave', 'pointercancel'].forEach(k => el.addEventListener(k, u));
-  };
+  if (!window.hold) {
+    window.hold = function(el, on, off) {
+      const d = e => { e.preventDefault(); el.classList.add('down'); on(); };
+      const u = () => { el.classList.remove('down'); off(); };
+      el.addEventListener('pointerdown', d);
+      ['pointerup', 'pointerleave', 'pointercancel'].forEach(k => el.addEventListener(k, u));
+    };
+  }
 
   const TAU = Math.PI * 2;
   const bg = $('#bg'), bx = bg.getContext('2d'), fx = $('#fx'), fxc = fx.getContext('2d');
@@ -194,10 +204,10 @@
     const row = mk('div', 'row');
     buttons.forEach(([label, fn, cls]) => {
       const b = mk('button', cls || '', label);
-      b.onclick = () => {
+      addTap(b, () => {
         Sound.click();
         fn();
-      };
+      });
       row.append(b);
     });
     bx.append(row);
@@ -260,8 +270,8 @@
       ['Close', closeDialog, 'pad-btn']
     ]);
 
-    $('#tab-stars').onclick = () => openLeaderboard('stars');
-    $('#tab-daily').onclick = () => openLeaderboard('daily');
+    addTap($('#tab-stars'), () => openLeaderboard('stars'));
+    addTap($('#tab-daily'), () => openLeaderboard('daily'));
   }
 
   // Onboarding & Enlistment Screen
@@ -292,36 +302,38 @@
       </div>
     `;
 
-    $('#btn-portal-close').onclick = () => {
+    addTap($('#btn-portal-close'), () => {
       Sound.click();
       portal.hidden = true;
       refreshUI();
-    };
+    });
 
     renderAuthForm('enlist');
 
-    $('#tab-enlist').onclick = () => {
+    addTap($('#tab-enlist'), () => {
       Sound.click();
-      $('.auth-tab.active').classList.remove('active');
+      const cur = $('.auth-tab.active');
+      if (cur) cur.classList.remove('active');
       $('#tab-enlist').classList.add('active');
       renderAuthForm('enlist');
-    };
+    });
 
-    $('#tab-login').onclick = () => {
+    addTap($('#tab-login'), () => {
       Sound.click();
-      $('.auth-tab.active').classList.remove('active');
+      const cur = $('.auth-tab.active');
+      if (cur) cur.classList.remove('active');
       $('#tab-login').classList.add('active');
       renderAuthForm('login');
-    };
+    });
 
-    $('#btn-quick-play').onclick = () => {
+    addTap($('#btn-quick-play'), () => {
       Sound.click();
-      const user = Storage.quickRookie();
+      Storage.quickRookie();
       Sound.win();
       portal.hidden = true;
       refreshUI();
       Tutorial.start();
-    };
+    });
   }
 
   function renderAuthForm(mode = 'enlist') {
@@ -359,15 +371,15 @@
       `;
 
       container.querySelectorAll('.av-option').forEach(el => {
-        el.onclick = () => {
+        addTap(el, () => {
           Sound.click();
           container.querySelectorAll('.av-option').forEach(o => o.classList.remove('selected'));
           el.classList.add('selected');
           selectedAvatar = el.dataset.avatar;
-        };
+        });
       });
 
-      $('#btn-enlist').onclick = () => {
+      addTap($('#btn-enlist'), () => {
         const name = $('#reg-name').value.trim();
         const username = $('#reg-user').value.trim();
         const password = $('#reg-pass').value.trim();
@@ -382,7 +394,7 @@
         $('#onboarding-portal').hidden = true;
         refreshUI();
         Tutorial.start();
-      };
+      });
     } else {
       container.innerHTML = `
         <div class="form-group">
@@ -397,7 +409,7 @@
         <button class="go big-submit" id="btn-login">${Icons.zap(20)} SIGN IN & PLAY</button>
       `;
 
-      $('#btn-login').onclick = () => {
+      addTap($('#btn-login'), () => {
         const username = $('#log-user').value.trim();
         const password = $('#log-pass').value.trim();
         const res = Storage.login(username, password);
@@ -409,7 +421,7 @@
         Sound.win();
         $('#onboarding-portal').hidden = true;
         refreshUI();
-      };
+      });
     }
   }
 
@@ -421,7 +433,7 @@
     const rank = Storage.getRank(user.stars || 0);
 
     $('#cadet-pill').innerHTML = `
-      <div class="hdr-avatar">${Icons.getAvatar(user.avatar, 28)}</div>
+      <div class="hdr-avatar">${Icons.getAvatar(user.avatar, 26)}</div>
       <span class="hdr-name">${user.name}</span>
     `;
 
@@ -455,37 +467,41 @@
 
       <div class="daily-banner">
         <div class="daily-info">
-          <div class="daily-tag">${Icons.calendar(16)} TODAY'S SPACE TASKS · ${todayStr}</div>
-          <h2>6 Space Training Tasks</h2>
+          <div class="daily-tag">${Icons.calendar(18)} TODAY'S SPACE TRAINING</div>
+          <h2>6 Daily Training Tasks</h2>
           <p>Complete all 6 training tasks today to earn up to 18 Stars!</p>
         </div>
         <div class="daily-tracker">
-          <div class="daily-stars-count">${Icons.star(true, 24)} ${dailyStarsEarned}/18 Daily Stars</div>
-          <div class="daily-timer">${Icons.clock(16)} Resets in ${Daily.getTimeUntilReset()}</div>
+          <div class="daily-stars-count">${Icons.star(true, 20)} ${dailyStarsEarned}/18 Stars</div>
+          <div class="daily-timer">${Icons.clock(16)} Next refresh in ${Daily.getTimeUntilReset()}</div>
         </div>
+      </div>
+
+      <div class="featured-banner">
+        <span class="feat-badge">${Icons.zap(16)} BONUS TASK TODAY</span>
+        <span><b>${featuredGame.name}</b> awards double mastery progress today!</span>
       </div>
 
       <div class="tasks-grid">
         ${dailyLevels.map((dl, idx) => {
-          const g = GAMES.find(gm => gm.id === dl.gameId) || GAMES[0];
+          const g = GAMES.find(gm => gm.id === dl.gameId);
           const starsGot = userDaily[idx] || 0;
           const isDone = starsGot > 0;
-          const bestStars = (user.bestStars && user.bestStars[g.id]) || 0;
-          const hiScore = (user.highScores && user.highScores[g.id]) || 0;
-          const isFeatured = featuredGame.id === g.id;
+          const isFeatured = dl.gameId === featuredGame.id;
+          const hiScore = (user.highScores && user.highScores[dl.gameId]) || 0;
 
           return `
             <div class="task-card ${isDone ? 'done' : ''} ${isFeatured ? 'featured' : ''}" data-level="${idx}">
-              <div class="task-head">
-                <span class="task-cat">${g.category} · TASK ${dl.levelNumber}</span>
-                ${isFeatured ? `<span class="feat-badge">${Icons.zap(14)} BONUS TASK</span>` : ''}
+              <div class="task-card-head">
+                <span class="task-badge-pill">${dl.badge}</span>
+                ${isFeatured ? `<span class="task-feat-tag">${Icons.zap(14)} BONUS</span>` : ''}
               </div>
 
               <div class="task-main">
-                <div class="task-ic">${Icons[g.icon](36)}</div>
+                <div class="task-ic">${Icons[dl.icon] ? Icons[dl.icon](36) : Icons.rocket(36)}</div>
                 <div class="task-text">
-                  <h3>${g.name}</h3>
-                  <p>${g.desc}</p>
+                  <h3>Task ${idx + 1}: ${dl.title}</h3>
+                  <p>${dl.desc}</p>
                 </div>
               </div>
 
@@ -510,7 +526,7 @@
     `;
 
     $('#daily-deck').querySelectorAll('.dl-play-btn').forEach(btn => {
-      btn.onclick = () => {
+      addTap(btn, () => {
         Sound.click();
         const lvlIdx = parseInt(btn.dataset.level, 10);
         const dl = dailyLevels[lvlIdx];
@@ -520,7 +536,7 @@
           dailyLevelIndex = lvlIdx;
           showGameIntro(g, dl);
         }
-      };
+      });
     });
   }
 
@@ -562,14 +578,14 @@
       </div>
     `;
 
-    $('#btn-switch-cadet').onclick = () => {
+    addTap($('#btn-switch-cadet'), () => {
       Sound.click();
       Storage.logout();
       $('#onboarding-portal').hidden = false;
       renderOnboardingPortal();
-    };
+    });
 
-    $('#rs').onclick = () => {
+    addTap($('#rs'), () => {
       Sound.click();
       showDialog(`
         <h2>Reset Cadet Progress?</h2>
@@ -590,11 +606,11 @@
           refreshUI();
         }, 'go']
       ]);
-    };
+    });
   }
 
   function refreshUI() {
-    const user = Storage.getOrCreateActiveUser();
+    Storage.getOrCreateActiveUser();
     renderHeader();
     renderDailyDeck();
     renderBadgesPanel();
@@ -688,19 +704,25 @@
   }
 
   // Global Button Handlers
-  $('#back').onclick = returnToMenu;
-  $('#btn-leaderboard').onclick = () => openLeaderboard('stars');
-  $('#btn-fieldguide').onclick = () => { Sound.click(); Tutorial.start(); };
+  addTap($('#back'), returnToMenu);
+  addTap($('#btn-leaderboard'), () => openLeaderboard('stars'));
+  addTap($('#btn-fieldguide'), () => { Sound.click(); Tutorial.start(); });
 
-  $('#mute').onclick = () => {
+  addTap($('#mute'), () => {
     Sound.setSfxMuted(!Sound.isSfxMuted());
     syncAudioButtons();
-  };
+  });
 
-  $('#mus').onclick = () => {
+  addTap($('#mus'), () => {
     Sound.setMusicMuted(!Sound.isMusicMuted());
     syncAudioButtons();
-  };
+  });
+
+  addTap($('#cadet-pill'), () => {
+    Sound.click();
+    $('#onboarding-portal').hidden = false;
+    renderOnboardingPortal();
+  });
 
   // Initialization
   Sound.init();

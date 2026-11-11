@@ -4,6 +4,7 @@ function blasterGame(st, api) {
   c.className = 'cv';
   c.width = 360;
   c.height = 420;
+  c.style.touchAction = 'none';
   const x = c.getContext('2d');
 
   // Simple, large tactile button below canvas
@@ -11,6 +12,7 @@ function blasterGame(st, api) {
   pad.className = 'pad';
   const shootBtn = document.createElement('button');
   shootBtn.className = 'big fire-btn';
+  shootBtn.style.touchAction = 'none';
   shootBtn.innerHTML = Icons.target(24) + ' SHOOT!';
   pad.append(shootBtn);
   st.append(c, pad);
@@ -33,11 +35,9 @@ function blasterGame(st, api) {
   let comboTimer = 0;
 
   function updateCrosshair(e) {
-    const rect = c.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    crosshair.x = ((clientX - rect.left) / rect.width) * 360;
-    crosshair.y = ((clientY - rect.top) / rect.height) * 420;
+    const pos = window.getCanvasCoords ? window.getCanvasCoords(e, c, 360, 420) : { x: 180, y: 200 };
+    crosshair.x = pos.x;
+    crosshair.y = pos.y;
     crosshair.active = true;
   }
 
@@ -45,7 +45,7 @@ function blasterGame(st, api) {
     if (done) return;
     Sound.laser();
 
-    // Twin laser beams from bottom-left (30, 410) and bottom-right (330, 410)
+    // Twin laser beams from bottom-left (40, 410) and bottom-right (320, 410)
     lasers.push({
       x1: 40, y1: 410,
       x2: 320, y2: 410,
@@ -112,6 +112,7 @@ function blasterGame(st, api) {
   // Pointer events on canvas (Tap to shoot!)
   c.addEventListener('pointerdown', e => {
     e.preventDefault();
+    try { c.setPointerCapture(e.pointerId); } catch(err) {}
     updateCrosshair(e);
     fireAt(crosshair.x, crosshair.y);
   });
@@ -119,15 +120,23 @@ function blasterGame(st, api) {
     updateCrosshair(e);
   });
 
-  // Shoot button fires at crosshair or screen center
-  shootBtn.addEventListener('pointerdown', e => {
-    e.preventDefault();
-    shootBtn.classList.add('down');
-    fireAt(crosshair.active ? crosshair.x : 180, crosshair.active ? crosshair.y : 180);
-  });
-  ['pointerup', 'pointerleave', 'pointercancel'].forEach(k => {
-    shootBtn.addEventListener(k, () => shootBtn.classList.remove('down'));
-  });
+  // Shoot button fires at crosshair or screen center (Instant mobile tap)
+  if (window.addMobileTap) {
+    window.addMobileTap(shootBtn, () => {
+      shootBtn.classList.add('down');
+      fireAt(crosshair.active ? crosshair.x : 180, crosshair.active ? crosshair.y : 180);
+      setTimeout(() => shootBtn.classList.remove('down'), 120);
+    });
+  } else {
+    shootBtn.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      shootBtn.classList.add('down');
+      fireAt(crosshair.active ? crosshair.x : 180, crosshair.active ? crosshair.y : 180);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(k => {
+      shootBtn.addEventListener(k, () => shootBtn.classList.remove('down'));
+    });
+  }
 
   // Spacebar / Enter to shoot
   const key = e => {
@@ -249,114 +258,126 @@ function blasterGame(st, api) {
     x.fillStyle = '#060924';
     x.fillRect(0, 0, 360, 420);
 
-    // Stars
-    x.fillStyle = 'rgba(255,255,255,0.7)';
-    for (let i = 0; i < 22; i++) {
-      const sx = (i * 47) % 360;
-      const sy = (i * 59 + t * 40) % 420;
+    // Starfield
+    x.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    for (let i = 0; i < 24; i++) {
+      const sx = ((i * 59 + 20) % 360);
+      const sy = ((i * 73 + t * 40) % 420);
       x.fillRect(sx, sy, 2, 2);
     }
 
-    // Cockpit Window Glass Frame Lines
-    x.strokeStyle = 'rgba(76, 201, 240, 0.2)';
-    x.lineWidth = 2;
+    // Cockpit windshield frame
+    x.strokeStyle = '#1b235e';
+    x.lineWidth = 3;
+    x.strokeRect(10, 10, 340, 400);
+
+    // Grid targeting lines
+    x.strokeStyle = 'rgba(76, 201, 240, 0.12)';
+    x.lineWidth = 1;
     x.beginPath();
-    x.moveTo(0, 0); x.lineTo(70, 70);
-    x.moveTo(360, 0); x.lineTo(290, 70);
-    x.moveTo(70, 70); x.lineTo(290, 70);
+    x.moveTo(180, 0); x.lineTo(180, 420);
+    x.moveTo(0, 210); x.lineTo(360, 210);
+    x.arc(180, 210, 90, 0, Math.PI * 2);
     x.stroke();
 
-    // Draw Targets
+    // DRAW TARGETS
     targets.forEach(tgt => {
       x.save();
       x.translate(tgt.x, tgt.y);
       x.rotate(tgt.rot);
 
       if (tgt.type === 'drone') {
-        // Alien Scout Drone
+        // Alien Space Drone (Cyan / Neon)
         x.fillStyle = '#4cc9f0';
         x.beginPath();
-        x.ellipse(0, 0, 16, 10, 0, 0, Math.PI * 2);
+        x.moveTo(0, -14);
+        x.lineTo(14, 10);
+        x.lineTo(0, 4);
+        x.lineTo(-14, 10);
+        x.closePath();
         x.fill();
         x.fillStyle = '#ffd23f';
         x.beginPath();
-        x.arc(0, -4, 6, 0, Math.PI * 2);
+        x.arc(0, 0, 4, 0, Math.PI * 2);
         x.fill();
-        x.strokeStyle = '#3ddc97';
-        x.lineWidth = 2;
-        x.stroke();
-      } else if (tgt.type === 'rock') {
-        // Armored Asteroid
-        x.fillStyle = '#8377ad';
-        x.beginPath();
-        for (let a = 0; a < 6; a++) {
-          const ang = (a * Math.PI) / 3;
-          const rVar = tgt.r * (0.8 + ((a * 3) % 4) * 0.1);
-          if (a === 0) x.moveTo(Math.cos(ang) * rVar, Math.sin(ang) * rVar);
-          else x.lineTo(Math.cos(ang) * rVar, Math.sin(ang) * rVar);
-        }
-        x.closePath();
-        x.fill();
-        x.fillStyle = '#594d82';
-        x.beginPath();
-        x.arc(-4, -4, 4, 0, Math.PI * 2);
-        x.fill();
-      } else if (tgt.type === 'mine') {
-        // Red Bomb Mine
-        x.fillStyle = '#ff5d6c';
+      } else if (tgt.type === 'gold') {
+        // Bonus Gold Satellite
+        x.fillStyle = '#ffd23f';
         x.beginPath();
         x.arc(0, 0, 12, 0, Math.PI * 2);
+        x.fill();
+        // Solar panels
+        x.fillStyle = '#4cc9f0';
+        x.fillRect(-22, -4, 8, 8);
+        x.fillRect(14, -4, 8, 8);
+        x.strokeStyle = '#fff';
+        x.lineWidth = 2;
+        x.strokeRect(-22, -4, 8, 8);
+        x.strokeRect(14, -4, 8, 8);
+      } else if (tgt.type === 'mine') {
+        // Red Explosive Space Mine
+        x.fillStyle = '#ff5d6c';
+        x.beginPath();
+        x.arc(0, 0, 14, 0, Math.PI * 2);
         x.fill();
         x.strokeStyle = '#ffd23f';
         x.lineWidth = 2.5;
         for (let a = 0; a < 6; a++) {
           const ang = (a * Math.PI) / 3;
           x.beginPath();
-          x.moveTo(Math.cos(ang) * 9, Math.sin(ang) * 9);
-          x.lineTo(Math.cos(ang) * 17, Math.sin(ang) * 17);
+          x.moveTo(Math.cos(ang) * 11, Math.sin(ang) * 11);
+          x.lineTo(Math.cos(ang) * 19, Math.sin(ang) * 19);
           x.stroke();
         }
       } else {
-        // Golden Bonus Pod
-        x.fillStyle = '#ffd23f';
+        // Armored Rock Asteroid (Requires 2 hits)
+        x.fillStyle = tgt.hp === 2 ? '#7a6f9b' : '#a594f9';
         x.beginPath();
-        x.arc(0, 0, 15, 0, Math.PI * 2);
+        for (let a = 0; a < 8; a++) {
+          const ang = (a * Math.PI * 2) / 8;
+          const rad = tgt.r * (0.8 + ((a * 3) % 4) * 0.1);
+          if (a === 0) x.moveTo(Math.cos(ang) * rad, Math.sin(ang) * rad);
+          else x.lineTo(Math.cos(ang) * rad, Math.sin(ang) * rad);
+        }
+        x.closePath();
         x.fill();
-        x.fillStyle = '#fff';
-        x.fillRect(-5, -5, 10, 10);
+
+        // 2-HP Shield Indicator
+        if (tgt.hp === 2) {
+          x.strokeStyle = '#3ddc97';
+          x.lineWidth = 2;
+          x.stroke();
+        }
       }
+
       x.restore();
     });
 
-    // Draw Laser Beams (Converging on tap point)
+    // DRAW TWIN LASER BEAMS
     lasers.forEach(l => {
-      const alpha = 1 - l.t / l.life;
-      x.strokeStyle = `rgba(76, 201, 240, ${alpha})`;
-      x.lineWidth = 4;
-      x.shadowColor = '#4cc9f0';
-      x.shadowBlur = 14;
-
+      const progress = l.t / l.life;
+      const alpha = 1 - progress;
+      x.strokeStyle = `rgba(255, 93, 108, ${alpha})`;
+      x.lineWidth = 5 * alpha;
       x.beginPath();
       x.moveTo(l.x1, l.y1);
       x.lineTo(l.tx, l.ty);
-      x.stroke();
-
-      x.beginPath();
       x.moveTo(l.x2, l.y2);
       x.lineTo(l.tx, l.ty);
       x.stroke();
 
-      // White core
+      // Core white laser
       x.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
-      x.lineWidth = 2;
+      x.lineWidth = 2 * alpha;
       x.beginPath();
-      x.moveTo(l.x1, l.y1); x.lineTo(l.tx, l.ty);
-      x.moveTo(l.x2, l.y2); x.lineTo(l.tx, l.ty);
+      x.moveTo(l.x1, l.y1);
+      x.lineTo(l.tx, l.ty);
+      x.moveTo(l.x2, l.y2);
+      x.lineTo(l.tx, l.ty);
       x.stroke();
-      x.shadowBlur = 0;
     });
 
-    // Draw Particles
+    // DRAW PARTICLES & POPUPS
     particles.forEach(p => {
       x.globalAlpha = Math.max(0, 1 - p.t / p.life);
       x.fillStyle = p.color;
@@ -366,7 +387,6 @@ function blasterGame(st, api) {
     });
     x.globalAlpha = 1;
 
-    // Draw Popups
     popups.forEach(po => {
       x.globalAlpha = Math.max(0, 1 - po.t / po.life);
       x.fillStyle = po.color;
@@ -376,7 +396,7 @@ function blasterGame(st, api) {
     });
     x.globalAlpha = 1;
 
-    // Twin Cannons at Bottom Corners (Cockpit Turret)
+    // Cockpit Gun Mounts (Bottom Left & Right)
     // Left Cannon
     x.fillStyle = '#1c2666';
     x.fillRect(20, 370, 40, 50);
