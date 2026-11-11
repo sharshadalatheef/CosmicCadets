@@ -53,6 +53,22 @@ const Sound = (function() {
       osc.stop(ac.currentTime + 0.04);
     },
 
+    hit() {
+      if (sfxMuted) return;
+      const ac = getCtx(); if (!ac) return;
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(320, ac.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(80, ac.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.12, ac.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.08);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start();
+      osc.stop(ac.currentTime + 0.08);
+    },
+
     laser() {
       if (sfxMuted) return;
       const ac = getCtx(); if (!ac) return;
