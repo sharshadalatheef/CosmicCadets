@@ -491,18 +491,30 @@
           const isFeatured = dl.gameId === featuredGame.id;
           const hiScore = (user.highScores && user.highScores[dl.gameId]) || 0;
 
+          // Strip any duplicate 'Task X:' prefixes from title cleanly
+          const rawTitle = dl.title || (g && g.name) || 'Space Mission';
+          const cleanTitle = String(rawTitle).replace(/^(Task\s*\d*:\s*)+/gi, '').trim();
+
+          // Ensure badge is never 'undefined' or empty
+          const rawBadge = dl.badge;
+          const badgeText = (rawBadge && rawBadge !== 'undefined' && String(rawBadge).trim() !== '')
+            ? String(rawBadge).toUpperCase()
+            : ((g && g.category) ? g.category.toUpperCase() : 'TRAINING');
+
+          const cleanDesc = dl.desc || (g && g.desc) || 'Complete this space mission to earn stars!';
+
           return `
             <div class="task-card ${isDone ? 'done' : ''} ${isFeatured ? 'featured' : ''}" data-level="${idx}">
               <div class="task-card-head">
-                <span class="task-badge-pill">${dl.badge || (g && g.category) || 'TRAINING'}</span>
+                <span class="task-badge-pill">${badgeText}</span>
                 ${isFeatured ? `<span class="task-feat-tag">${Icons.zap(14)} BONUS</span>` : ''}
               </div>
 
               <div class="task-main">
                 <div class="task-ic">${Icons[dl.icon] ? Icons[dl.icon](36) : Icons.rocket(36)}</div>
                 <div class="task-text">
-                  <h3>Task ${idx + 1}: ${dl.title}</h3>
-                  <p>${dl.desc}</p>
+                  <h3>Task ${idx + 1}: ${cleanTitle}</h3>
+                  <p>${cleanDesc}</p>
                 </div>
               </div>
 
@@ -627,8 +639,11 @@
     $('#hud').innerHTML = '';
     $('#stage').innerHTML = '';
 
+    const cleanIntroName = dailyCfg
+      ? String(dailyCfg.title || g.name).replace(/^(Task\s*\d*:\s*)+/gi, '').trim()
+      : g.name;
     const modalTitle = dailyCfg
-      ? (dailyCfg.title.startsWith('Task') ? dailyCfg.title : `Task ${dailyCfg.levelNumber}: ${dailyCfg.title}`)
+      ? `Task ${dailyCfg.levelNumber || 1}: ${cleanIntroName}`
       : g.name;
 
     const introHtml = `
