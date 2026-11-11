@@ -238,14 +238,15 @@
       const rankNum = i + 1;
       const rankBadge = rankNum === 1 ? 'rank-gold' : rankNum === 2 ? 'rank-silver' : rankNum === 3 ? 'rank-bronze' : '';
       const starsDisplay = tab === 'daily' ? (u.dailyStars || 0) : (u.stars || 0);
+      const userRank = Storage.getRank(u.stars || 0);
 
       return `
         <div class="lb-row ${isMe ? 'lb-me' : ''} ${rankBadge}">
           <span class="lb-rank">#${rankNum}</span>
-          <div class="lb-avatar">${Icons.getAvatar(u.avatar, 34)}</div>
+          <div class="lb-avatar">${Icons.getAvatar(u.avatar || 'astrofox', 34)}</div>
           <div class="lb-info">
-            <div class="lb-name">${u.name} ${isMe ? '<span class="you-tag">(YOU)</span>' : ''}</div>
-            <div class="lb-meta">@${u.username} · ${Storage.getRank(u.stars || 0).title}</div>
+            <div class="lb-name">${u.name || 'Cadet'} ${isMe ? '<span class="you-tag">(YOU)</span>' : ''}</div>
+            <div class="lb-meta">@${u.username || 'cadet'} · ${userRank.title || 'Space Cadet'}</div>
           </div>
           <div class="lb-stars">
             ${Icons.star(true, 18)}
@@ -433,13 +434,13 @@
     const rank = Storage.getRank(user.stars || 0);
 
     $('#cadet-pill').innerHTML = `
-      <div class="hdr-avatar">${Icons.getAvatar(user.avatar, 26)}</div>
-      <span class="hdr-name">${user.name}</span>
+      <div class="hdr-avatar">${Icons.getAvatar(user.avatar || 'astrofox', 26)}</div>
+      <span class="hdr-name">${user.name || 'Cadet'}</span>
     `;
 
     $('#rank-pill').innerHTML = `
       <span class="rank-ic">${Icons[rank.icon] ? Icons[rank.icon](18) : Icons.rocket(18)}</span>
-      <span>${rank.title}</span>
+      <span>${rank.title || 'Space Cadet'}</span>
     `;
 
     $('#stars-pill').innerHTML = `
@@ -455,14 +456,14 @@
 
     const todayStr = Daily.getTodayString();
     const dailyLevels = Daily.getDailyLevels(todayStr);
-    const featuredGame = Daily.getFeaturedGame(todayStr);
+    const featuredGame = Daily.getFeaturedGame(todayStr) || GAMES[0];
     const userDaily = (user.dailyCompleted && user.dailyCompleted[todayStr]) || {};
     const dailyStarsEarned = Object.values(userDaily).reduce((a, b) => a + b, 0);
 
     $('#daily-deck').innerHTML = `
       <div class="space-fact-card">
         <span class="fact-tag">${Icons.star(true, 18)} DAILY SPACE FACT</span>
-        <span class="fact-text">${Daily.getDailySpaceFact(todayStr)}</span>
+        <span class="fact-text">${Daily.getDailySpaceFact(todayStr) || 'Space is full of amazing wonders!'}</span>
       </div>
 
       <div class="daily-banner">
@@ -479,7 +480,7 @@
 
       <div class="featured-banner">
         <span class="feat-badge">${Icons.zap(16)} BONUS TASK TODAY</span>
-        <span><b>${featuredGame.name}</b> awards double mastery progress today!</span>
+        <span><b>${featuredGame.name || 'Featured Task'}</b> awards double mastery progress today!</span>
       </div>
 
       <div class="tasks-grid">
@@ -493,7 +494,7 @@
           return `
             <div class="task-card ${isDone ? 'done' : ''} ${isFeatured ? 'featured' : ''}" data-level="${idx}">
               <div class="task-card-head">
-                <span class="task-badge-pill">${dl.badge}</span>
+                <span class="task-badge-pill">${dl.badge || (g && g.category) || 'TRAINING'}</span>
                 ${isFeatured ? `<span class="task-feat-tag">${Icons.zap(14)} BONUS</span>` : ''}
               </div>
 
@@ -511,7 +512,7 @@
                   <span class="st">${Icons.stars(starsGot, 3, 18)}</span>
                 </div>
                 <div class="task-stat-row">
-                  <span class="stat-label">Goal: ${dl.starGoals[1]}</span>
+                  <span class="stat-label">Goal: ${dl.starGoals && dl.starGoals[1] ? dl.starGoals[1] : 'Earn 2 Stars'}</span>
                   <span class="stat-hi">${Icons.trophy(14)} Best: ${hiScore}</span>
                 </div>
               </div>
@@ -589,7 +590,7 @@
       Sound.click();
       showDialog(`
         <h2>Reset Cadet Progress?</h2>
-        <p>This will reset stars, badges, and scores for cadet <b>${user.name}</b>.</p>
+        <p>This will reset stars, badges, and scores for cadet <b>${user.name || 'Cadet'}</b>.</p>
       `, [
         ['Cancel', closeDialog, 'pad-btn'],
         ['Reset Everything', () => {
@@ -626,9 +627,13 @@
     $('#hud').innerHTML = '';
     $('#stage').innerHTML = '';
 
+    const modalTitle = dailyCfg
+      ? (dailyCfg.title.startsWith('Task') ? dailyCfg.title : `Task ${dailyCfg.levelNumber}: ${dailyCfg.title}`)
+      : g.name;
+
     const introHtml = `
       <div class="intro-icon">${Icons[g.icon](64)}</div>
-      <h2>${dailyCfg ? dailyCfg.title : g.name}</h2>
+      <h2>${modalTitle}</h2>
       <p class="intro-desc">${dailyCfg ? dailyCfg.desc : g.how}</p>
       ${dailyCfg ? `
         <div class="daily-goals-box">
@@ -671,8 +676,19 @@
 
     const title = stars === 3 ? 'Perfect Performance!' : stars >= 1 ? 'Mission Accomplished!' : 'Keep Training!';
 
+    const badgeMap = {
+      firstFlight: 'First Flight',
+      starCollector: 'Star Collector',
+      perfectPilot: 'Perfect Pilot',
+      commander: 'Commander',
+      veteran: 'Veteran Pilot',
+      sharpshooter: 'Ace Blaster',
+      ecoHero: 'Eco Hero',
+      dailyMaster: 'Daily Master'
+    };
+
     const badgeNote = result.newBadges && result.newBadges.length > 0
-      ? `<div class="badge-unlocked">${Icons.gem(20)} <b>New Badge Unlocked: ${result.newBadges.map(b => b).join(', ')}!</b></div>`
+      ? `<div class="badge-unlocked">${Icons.gem(20)} <b>New Badge Unlocked: ${result.newBadges.map(b => badgeMap[b] || b).join(', ')}!</b></div>`
       : '';
 
     const rankNote = rankUp

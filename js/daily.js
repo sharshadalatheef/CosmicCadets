@@ -70,36 +70,42 @@ const Daily = (function() {
 
       const taskConfigs = {
         blaster: {
+          badge: 'WEAPONS',
           title: 'Laser Target Shoot',
           desc: 'Tap flying targets to blast them with twin lasers!',
           starGoals: ['Score 800 pts', 'Score 1,800 pts', 'Score 3,000 pts'],
           thresholds: [800, 1800, 3000]
         },
         collector: {
+          badge: 'AIRLOCK',
           title: 'Empty Space Trash',
           desc: 'Drag trash into the chute and pull the big lever to flush it out!',
           starGoals: ['Clean 8 pieces', 'Clean 16 pieces', 'Clean 24 pieces'],
           thresholds: [800, 1800, 3000]
         },
         dodge: {
+          badge: 'NAVIGATION',
           title: 'Dodge Space Rocks',
           desc: 'Steer left and right. Catch stars and dodge rocks!',
           starGoals: ['Catch 8 stars', 'Catch 14 stars', 'Catch 20 stars'],
           thresholds: [8, 14, 20]
         },
         gyro: {
+          badge: 'ENGINES',
           title: 'Stop the Spin',
           desc: 'Tap STOP when the needle lands in the green zone!',
           starGoals: ['Land 4 stops', 'Land 6 stops', 'Land 8 perfect stops'],
           thresholds: [4, 6, 8]
         },
         gforce: {
+          badge: 'THRUSTERS',
           title: 'Hold the Boost',
           desc: 'Hold BOOST to keep the rocket inside the green zone!',
           starGoals: ['Survive 8s in zone', 'Survive 14s in zone', 'Survive 20s in zone'],
           thresholds: [8, 14, 20]
         },
         memory: {
+          badge: 'REACTOR',
           title: 'Match the Lights',
           desc: 'Watch the colors light up and tap them in the same order!',
           starGoals: ['Solve 3 rounds', 'Solve 5 rounds', 'Solve 7 rounds'],
@@ -108,12 +114,19 @@ const Daily = (function() {
       };
 
       return games.map((g, index) => {
-        const cfg = taskConfigs[g.id];
+        const cfg = taskConfigs[g.id] || {
+          badge: 'TRAINING',
+          title: g.name,
+          desc: 'Complete this training mission to earn stars!',
+          starGoals: ['1 Star', '2 Stars', '3 Stars'],
+          thresholds: [1, 2, 3]
+        };
         return {
           levelNumber: index + 1,
           gameId: g.id,
           name: g.name,
-          title: `Task ${index + 1}: ${cfg.title}`,
+          badge: cfg.badge || 'TRAINING',
+          title: cfg.title,
           desc: cfg.desc,
           icon: g.icon,
           starGoals: cfg.starGoals,
