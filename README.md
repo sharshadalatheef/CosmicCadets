@@ -2,7 +2,7 @@
 
 > **Competition Entry** — Web Development & Interactive EdTech Hackathon 2026  
 > **Theme:** Kid-Safe, Fast & Tactile Web Gaming (Ages 7–12)  
-> **Live Demo:** [cosmic-cadets.vercel.app](https://github.com/sharshadalatheef/CosmicCadets) *(or run locally via `node server.js`)*  
+> **Live Demo:** [https://playcosmiccadets.vercel.app/](https://github.com/sharshadalatheef/CosmicCadets) *(or run locally via `node server.js`)*  
 > **Presentation Slide Deck:** Included in this repo as [`CosmicCadets_Presentation.pptx`](./CosmicCadets_Presentation.pptx) and interactive in-browser [`presentation.html`](./presentation.html).
 
 ---
